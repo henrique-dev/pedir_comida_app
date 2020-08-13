@@ -320,7 +320,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void registerUser() {
     if (validateValues()) {
       HttpConnection.get("medic_profiles", callBack: registerUserCallBack).then((value) => (v) {
-        print ("EOQ: " + v);
       });
     }
   }

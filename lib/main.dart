@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:pedir_comida/screens/login_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pedir_comida/screens/splash_screen.dart';
 
-import 'config.dart';
+void main () {
 
-void main() {
   runApp(
     MaterialApp(
-      //routes: Config.routes,
-      home: LoginScreen(),
+      home: SplashScreen(),
+      theme: ThemeData(
+        textTheme: GoogleFonts.getTextTheme("Cabin")
+      ),
     )
   );
 }
