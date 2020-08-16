@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
+import 'package:pedir_comida/config/my_theme.dart';
 import 'package:pedir_comida/models/user.dart';
+import 'package:pedir_comida/screens/pre_login_screen.dart';
 
+import '../config.dart';
 import 'http_connection.dart';
 
 class Connection {
@@ -14,7 +20,7 @@ class Connection {
     "uid" : ""
   };
 
-  static Future<dynamic> get(String path, {Function callback,
+  static Future<dynamic> get(String path, BuildContext context, {Function callback,
     Map<String, String> headers}) async {
     if (headers == null) {
       headers = {
@@ -22,71 +28,94 @@ class Connection {
       };
     }
     headers.addAll(accessHeaders);
-    return HttpConnection.get(path, callBack: preCallback, posCallBack: callback, headers: headers);
-  }
-
-  static Future<dynamic> post(String path, {Function callback,
-    Map<String, String> headers, dynamic body}) async {
-    if (headers == null) {
-      headers = {
-        "Content-Type" : "application/json; charset=UTF-8"
-      };
+    dynamic response;
+    try {
+      response = await HttpConnection.get(path, headers: headers).timeout(Duration(seconds: 5));
+    } on TimeoutException catch(e) {
+     print(e);
+     response = Response("{}", 408);
     }
-    headers.addAll(accessHeaders);
-    return HttpConnection.post(path, callBack: preCallback, posCallBack: callback, headers: headers, body: body);
-  }
-
-  static Future<dynamic> patch(String path, {Function callback,
-    Map<String, String> headers, dynamic body}) async {
-    if (headers == null) {
-      headers = {
-        "Content-Type" : "application/json; charset=UTF-8"
-      };
-    }
-    headers.addAll(accessHeaders);
-    return HttpConnection.patch(path, callBack: preCallback, posCallBack: callback, headers: headers, body: body);
-  }
-
-  static Future<dynamic> delete(String path, {Function callback,
-    Map<String, String> headers, dynamic body}) async {
-    if (headers == null) {
-      headers = {
-        "Content-Type" : "application/json; charset=UTF-8"
-      };
-    }
-    headers.addAll(accessHeaders);
-    return HttpConnection.delete(path, callBack: preCallback, posCallBack: callback, headers: headers);
-  }
-
-  static Response checkResponse(Response response, Function callback) {
-    switch (response.statusCode) {
-      case 401:
-        logout(callback);
-        break;
-    }
+    checkStatusCode(context, response);
+    preCallback(response, callback);
     return response;
   }
 
-  static void login(Function callback, User user) {
+  static Future<dynamic> post(String path, BuildContext context, {Function callback,
+    Map<String, String> headers, dynamic body}) async {
+    if (headers == null) {
+      headers = {
+        "Content-Type" : "application/json; charset=UTF-8"
+      };
+    }
+    headers.addAll(accessHeaders);
+    dynamic response;
+    try {
+      response = await HttpConnection.post(path, headers: headers, body: body).timeout(Duration(seconds: 5));
+    } on TimeoutException catch(e) {
+      print(e);
+      response = Response("{}", 408);
+    }
+    checkStatusCode(context, response);
+    preCallback(response, callback);
+    return response;
+  }
+
+  static Future<dynamic> patch(String path, BuildContext context, {Function callback,
+    Map<String, String> headers, dynamic body}) async {
+    if (headers == null) {
+      headers = {
+        "Content-Type" : "application/json; charset=UTF-8"
+      };
+    }
+    headers.addAll(accessHeaders);
+    dynamic response = await HttpConnection.patch(path, headers: headers, body: body);
+    checkStatusCode(context, response);
+    preCallback(response, callback);
+    return response;
+  }
+
+  static Future<dynamic> delete(String path, BuildContext context, {Function callback,
+    Map<String, String> headers, dynamic body}) async {
+    if (headers == null) {
+      headers = {
+        "Content-Type" : "application/json; charset=UTF-8"
+      };
+    }
+    headers.addAll(accessHeaders);
+    dynamic response = await HttpConnection.delete(path, headers: headers);
+    checkStatusCode(context, response);
+    preCallback(response, callback);
+    return response;
+  }
+
+  static Future<void> login(Function callback, User user) async {
     var body = {};
     body["telephone"] = user.cpf.replaceAll("\t", "");
     body["password"] = user.password.replaceAll("\t", "");
     var headers = {
       "Content-Type" : "application/json; charset=UTF-8"
     };
-    HttpConnection.post("/users/auth/sign_in",
-        callBack: posLogin,
-        posCallBack: callback,
+    dynamic response = await HttpConnection.post("/users/auth/sign_in",
         headers: headers,
         body: json.encode(body)
     );
+    posLogin(response, callback);
+    return response;
   }
 
-  static Future<void> logout(Function callback) async {
-    return HttpConnection.delete("users/sign_out", callBack: preCallback, posCallBack: callback);
+  static Future<void> logout(BuildContext context) async {
+    dynamic response = await HttpConnection.post("/users/auth/sign_out");
+    checkStatusCode(context, response);
+    Connection.accessHeaders = {
+      "access-token" : "",
+      "client" : "",
+      "uid" : ""
+    };
+    return response;
   }
 
   static Future<void> preCallback(Response response, Function posCallback) async {
+
     bool modified = false;
     if (response.headers["access-token"] != null && response.headers["access-token"] != "" && accessHeaders["access-token"] != response.headers["access-token"]) {
       accessHeaders["access-token"] = response.headers["access-token"];
@@ -134,6 +163,60 @@ class Connection {
 
     posCallback(response);
 
+  }
+
+  static Future<bool> checkStatusCode(BuildContext context, Response response) async {
+    print(response.statusCode);
+    switch (response.statusCode) {
+      case 408:
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                content: SingleChildScrollView(
+                  child: ListBody(
+                    children: <Widget>[
+                      Text("Desculpe, podemos estar em manutenção. Tente novamente em alguns minutos."),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('Ok'),
+                    color: MyTheme.THEME_COLOR_1,
+                    onPressed: () {
+                      Config.guestMode = false;
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (BuildContext context) => PreLoginScreen(check_token: false,)),
+                        ModalRoute.withName('/'),
+                      );
+                    },
+                  ),
+                ],
+              );
+            }
+        );
+        break;
+      case 401:
+        final storage = FlutterSecureStorage();
+        await storage.deleteAll();
+        Connection.accessHeaders = {
+          "access-token" : "",
+          "client" : "",
+          "uid" : ""
+        };
+        Config.guestMode = false;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (BuildContext context) => PreLoginScreen()),
+          ModalRoute.withName('/'),
+        );
+        break;
+      default:
+        return true;
+    }
+    return false;
   }
 
 }

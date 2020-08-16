@@ -58,7 +58,7 @@ class _AddressScreenState extends State<AddressScreen> {
         showFormPreAddAddress();
       });
     } else {
-      Connection.get("/user/addresses/${this._addressId}.json?", callback: addressLoaded);
+      Connection.get("/user/addresses/${this._addressId}.json?", this.context, callback: addressLoaded);
     }
   }
 
@@ -410,9 +410,9 @@ class _AddressScreenState extends State<AddressScreen> {
       body["zipcode"] = _textEditingControllerZipCode.text.replaceAll("\t", "");
 
       if (this._addressId != 0) {
-        Connection.patch("/user/addresses/${this._addressId}.json", callback: saveAddressCallback, body: json.encode(body));
+        Connection.patch("/user/addresses/${this._addressId}.json", context, callback: saveAddressCallback, body: json.encode(body));
       } else {
-        Connection.post("/user/addresses.json", callback: saveAddressCallback, body: json.encode(body));
+        Connection.post("/user/addresses.json", context, callback: saveAddressCallback, body: json.encode(body));
       }
     }
   }

@@ -12,6 +12,7 @@ import 'package:pedir_comida/config/transition.dart';
 import 'package:pedir_comida/connection/connection.dart';
 import 'package:pedir_comida/connection/http_connection.dart';
 import 'package:pedir_comida/screens/addresses_screen.dart';
+import 'package:pedir_comida/screens/payments_screen.dart';
 import 'package:pedir_comida/screens/pre_login_screen.dart';
 import 'package:pedir_comida/screens/product_screen.dart';
 import 'package:pedir_comida/utils/my_converter.dart';
@@ -50,31 +51,7 @@ class SubMainAccount {
               child: Text("Meus endereços"),
             ),
             onTap: (){
-              if (Config.guestMode) {
-                showDialog(
-                    context: this.screen.context,
-                    builder: (context) {
-                      return AlertDialog(
-                        content: SingleChildScrollView(
-                          child: ListBody(
-                            children: <Widget>[
-                              Text("Você precisa realizar seu cadastro para usar esta funcionalidade"),
-                            ],
-                          ),
-                        ),
-                        actions: <Widget>[
-                          FlatButton(
-                            child: Text('Ok'),
-                            color: MyTheme.THEME_COLOR_1,
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      );
-                    }
-                );
-              } else {
+              if (!guestMode()) {
                 Navigator.push(this.screen.context, PageTransition(type: PageTransitionType.fade, child: AddressesScreen()));
               }
             },
@@ -85,7 +62,11 @@ class SubMainAccount {
               padding: EdgeInsets.all(10),
               child: Text("Minhas formas de pagamento (em breve)"),
             ),
-            onTap: (){},
+            onTap: (){
+              if (!guestMode()) {
+                Navigator.push(this.screen.context, PageTransition(type: PageTransitionType.fade, child: PaymentsScreen()));
+              }
+            },
           ),
           ListTile(
             leading: Icon(Icons.transit_enterexit),
@@ -96,14 +77,9 @@ class SubMainAccount {
             onTap: () async {
 
               Dialogs.showLoadingDialog(this.screen.context, _keyLoader, "Saindo");
-              await Connection.post("/users/auth/sign_out");
+              await Connection.logout(this.screen.context);
               final storage = FlutterSecureStorage();
               await storage.deleteAll();
-              Connection.accessHeaders = {
-                "access-token" : "",
-                "client" : "",
-                "uid" : ""
-              };
               Config.guestMode = false;
               Navigator.pushAndRemoveUntil(
                   this.screen.context,
@@ -117,5 +93,35 @@ class SubMainAccount {
         ],
       ),
     );
+  }
+
+  bool guestMode() {
+    if (Config.guestMode) {
+      showDialog(
+          context: this.screen.context,
+          builder: (context) {
+            return AlertDialog(
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text("Você precisa realizar seu cadastro para usar esta funcionalidade"),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('Ok'),
+                  color: MyTheme.THEME_COLOR_1,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          }
+      );
+      return true;
+    }
+    return false;
   }
 }

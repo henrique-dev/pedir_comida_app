@@ -39,6 +39,10 @@ class Constants {
     "done" : "Entregue"
   };
 
+  static final Map<int, String> paymentTypes = {
+    0 : "Cartão de crédito - PagarMe"
+  };
+
   static final List<String> neighborhoods = [
     "Alvorada", "Araxá", "Beirol", "Boné Azul", "Brasil Novo", "Buritizal",
     "Cabralzinho", "Central", "Cidade Nova", "Congós", "Infraero", "Jardim Equatorial",

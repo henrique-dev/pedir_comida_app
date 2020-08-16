@@ -52,7 +52,7 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    Connection.get("/user/products/${this._productId}.json?sub_id=${this._subId}", callback: productLoaded);
+    Connection.get("/user/products/${this._productId}.json?sub_id=${this._subId}", this.context, callback: productLoaded);
   }
 
   @override
@@ -74,9 +74,9 @@ class _ProductScreenState extends State<ProductScreen> {
                 body["cart"]["quantity"] = quantity;
                 body["cart"].addAll(getOnlyNeededRequisites());
                 if (this._subId == 0) {
-                  Connection.post("/user/carts/add.json?", callback: productAdded, body: json.encode(body));
+                  Connection.post("/user/carts/add.json?", context, callback: productAdded, body: json.encode(body));
                 } else {
-                  Connection.post("/user/carts/update_item.json?", callback: productAdded, body: json.encode(body));
+                  Connection.post("/user/carts/update_item.json?", context, callback: productAdded, body: json.encode(body));
                 }
               }
             } else {

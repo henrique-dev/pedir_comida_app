@@ -94,7 +94,7 @@ class _MainScreenState extends State<MainScreen> {
       floatingActionButton: FutureBuilder<dynamic>(
         future: Config.guestMode ? Future.delayed(Duration(seconds: 2)).then((_){
 
-        }) : Connection.get("/user/carts/0.json?only_total=true", callback: null),
+        }) : Connection.get("/user/carts/0.json?only_total=true", context, callback: null),
         builder: (context, snapshot) {
 
           Map<String, dynamic> jsonDecoded;
@@ -118,51 +118,17 @@ class _MainScreenState extends State<MainScreen> {
                   jsonDecoded = json.decode(response.body);
                   cart = jsonDecoded["cart"];
 
-                  if (cart["locked"]) {
-                    openSocket();
+                  if (cart != null) {
+                    if (cart["locked"]) {
+                      openSocket();
 
-                    if (_currentBottomNavigationBarIndex != 1) {
-                      return RaisedButton(
-                        onPressed: (){
-                          setState(() {
-                            _currentBottomNavigationBarIndex = 1;
-                          });
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(right: 10, left: 0),
-                                child: Icon(Icons.access_time, color: Colors.white,),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(right: 10),
-                                child: Text("Acompanhar pedido", style: TextStyle(color: Colors.white),),
-                              ),
-                            ],
-                          ),
-                        ),
-                        color: MyTheme.THEME_COLOR_1,
-                      );
-                    }
-                  } else if (cart is Map<String, dynamic>) {
-                    if (cart["total"] != null && double.tryParse(cart["total"]) > 0) {
-                      return ButtonTheme(
-                        height: 35,
-                        minWidth: 10,
-                        child: RaisedButton(
-                          onPressed: () async {
-                            await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: CartScreen()));
-                            resetSubScreen(_currentBottomNavigationBarIndex);
-                            setState(() {});
+                      if (_currentBottomNavigationBarIndex != 1) {
+                        return RaisedButton(
+                          onPressed: (){
+                            setState(() {
+                              _currentBottomNavigationBarIndex = 1;
+                            });
                           },
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              side: BorderSide(color: Colors.black12)
-                          ),
                           child: Padding(
                             padding: EdgeInsets.all(5),
                             child: Row(
@@ -171,23 +137,61 @@ class _MainScreenState extends State<MainScreen> {
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(right: 10, left: 0),
-                                  child: Icon(Icons.shopping_cart, color: Colors.white,),
+                                  child: Icon(Icons.access_time, color: Colors.white,),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(right: 10),
-                                  child: Text("Ver carrinho", style: TextStyle(color: Colors.white),),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(right: 0),
-                                  child: Text("R\$ ${MyConverter.convertPriceUsToBr(cart["total"])}", style: TextStyle(color: Colors.white),),
+                                  child: Text("Acompanhar pedido", style: TextStyle(color: Colors.white),),
                                 ),
                               ],
                             ),
                           ),
                           color: MyTheme.THEME_COLOR_1,
-                        ),
-                      );
+                        );
+                      }
+                    } else if (cart is Map<String, dynamic>) {
+                      if (cart["total"] != null && double.tryParse(cart["total"]) > 0) {
+                        return ButtonTheme(
+                          height: 35,
+                          minWidth: 10,
+                          child: RaisedButton(
+                            onPressed: () async {
+                              await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: CartScreen()));
+                              resetSubScreen(_currentBottomNavigationBarIndex);
+                              setState(() {});
+                            },
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5),
+                                side: BorderSide(color: Colors.black12)
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(5),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 10, left: 0),
+                                    child: Icon(Icons.shopping_cart, color: Colors.white,),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 10),
+                                    child: Text("Ver carrinho", style: TextStyle(color: Colors.white),),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 0),
+                                    child: Text("R\$ ${MyConverter.convertPriceUsToBr(cart["total"])}", style: TextStyle(color: Colors.white),),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            color: MyTheme.THEME_COLOR_1,
+                          ),
+                        );
+                      }
                     }
+                  } else {
+                    return Text("");
                   }
                 } else {
                   return RaisedButton(
@@ -267,10 +271,10 @@ class _MainScreenState extends State<MainScreen> {
     _cable.stream.listen((value) {
       if (value is ActionCableConnected) {
         print('ActionCableConnected');
-        _cable.subscribeToChannel(_channel, channelParams: {"id": 1});
+        _cable.subscribeToChannel(_channel);
       } else if (value is ActionCableSubscriptionConfirmed) {
         print('ActionCableSubscriptionConfirmed');
-        _cable.performAction(_channel, 'send_message', channelParams: {'id': 1}, actionParams: {'body': 'hello world'});
+        //_cable.performAction(_channel, 'send_message', channelParams: {'id': 1}, actionParams: {'body': 'hello world'});
       } else if (value is ActionCableMessage) {
         Map<String, dynamic> jsonDecoded = value.message;
         print(jsonDecoded);

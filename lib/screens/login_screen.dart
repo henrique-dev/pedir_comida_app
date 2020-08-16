@@ -533,7 +533,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     var body = {};
     body["register"] = {};
     body["register"]["telephone"] = _telephoneTextEditingController.text.replaceAll("\t", "");;
-    Response response = await Connection.post("/user/register/check_telephone", body: json.encode(body));
+    Response response = await Connection.post("/user/register/check_telephone", context, body: json.encode(body));
     if (response.statusCode == 200) {
       Map <String, dynamic> jsonDecoded = json.decode(response.body);
       if (jsonDecoded["status"] != null) {
@@ -604,7 +604,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     body["password"] = _passwordTextEditingController.text.replaceAll("\t", "");
     body["password_confirmation"] = _passwordConfirmTextEditingController.text.replaceAll("\t", "");
 
-    Response response = await Connection.post("/users/auth", body: json.encode(body));
+    Response response = await Connection.post("/users/auth", context, body: json.encode(body));
 
     if (response.statusCode == 200) {
       Map <String, dynamic> jsonDecoded = json.decode(response.body);
@@ -627,7 +627,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     body["confirmation_token"] = _tokenTextEditingController.text.replaceAll("\t", "");
     body["telephone"] = _telephoneTextEditingController.text.replaceAll("\t", "");
 
-    Response response = await Connection.post("/user/register/confirm_token", body: json.encode(body));
+    Response response = await Connection.post("/user/register/confirm_token", context, body: json.encode(body));
 
     if (response.statusCode == 200) {
       Map <String, dynamic> jsonDecoded = json.decode(response.body);

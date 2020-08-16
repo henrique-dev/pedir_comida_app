@@ -8,23 +8,24 @@ import 'package:pedir_comida/config/my_theme.dart';
 import 'package:pedir_comida/config/transition.dart';
 import 'package:pedir_comida/connection/connection.dart';
 import 'package:pedir_comida/screens/address_screen.dart';
+import 'package:pedir_comida/screens/payment_screen.dart';
 
-class AddressesScreen extends StatefulWidget {
+class PaymentsScreen extends StatefulWidget {
   @override
-  _AddressesScreenState createState() => _AddressesScreenState();
+  _PaymentsScreenState createState() => _PaymentsScreenState();
 }
 
-class _AddressesScreenState extends State<AddressesScreen> {
+class _PaymentsScreenState extends State<PaymentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Meus endereços"),
+          title: Text("Minhas formas de pagamento"),
         backgroundColor: MyTheme.THEME_COLOR_1,
       ),
       body: Container(
         child: FutureBuilder(
-          future: Connection.get("/user/addresses.json", context, callback: null),
+          future: Connection.get("/user/pagarmes.json", context, callback: null),
           builder: (context, snapshot) {
 
             List jsonDecoded;
@@ -52,12 +53,11 @@ class _AddressesScreenState extends State<AddressesScreen> {
                   jsonDecoded.forEach((element) {
                     widgets.add(
                       ListTile(
-                        title: Text(element["description"]),
-                        subtitle: Text(element["street"]),
-                        trailing: Text(element["neighborhood"]),
+                        title: Text("Cartão de crédito - PagarMe"),
+                        subtitle: Text(element["description"]),
+                        trailing: Image.asset("assets/images/${element["brand"]}.png"),
                         onTap: () async {
-                          await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: AddressScreen( address: element["id"])));
-                          setState(() {});
+
                         },
                       )
                     );
@@ -70,10 +70,10 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         height: 45,
                         child: RaisedButton(
                           onPressed: () async {
-                            await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: AddressScreen()));
+                            await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: PaymentScreen()));
                             setState(() {});
                           },
-                          child: Text("Adicionar novo endereço", style: TextStyle(fontSize: 16),),
+                          child: Text("Adicionar nova forma de pagamento", style: TextStyle(fontSize: 16),),
                           color: MyTheme.THEME_COLOR_1,
                           textColor: Colors.white,
                           shape: RoundedRectangleBorder(

@@ -37,7 +37,7 @@ class SubMainOrder {
 
   FutureBuilder<dynamic> _screenOrder(Function setCart) {
     return FutureBuilder<dynamic>(
-      future: Connection.get("/user/orders.json", callback: null),
+      future: Connection.get("/user/orders.json", this.screen.context, callback: null),
       builder: (context, snapshot) {
 
         Map<String, dynamic> jsonDecoded;
@@ -144,7 +144,7 @@ class SubMainOrder {
                                                     Map<String, dynamic> body = Map<String, dynamic>();
                                                     body["order"] = Map<String, dynamic>();
                                                     body["order"]["id"] = element["id"];
-                                                    await Connection.post("/user/carts/repurchase.json", callback: repurchaseCallback, body: json.encode(body));
+                                                    await Connection.post("/user/carts/repurchase.json", this.screen.context, callback: repurchaseCallback, body: json.encode(body));
                                                   },
                                                   //child: Text("Pedir novamente", style: TextStyle(fontSize: 16),),
                                                   child: Icon(Icons.shopping_cart),

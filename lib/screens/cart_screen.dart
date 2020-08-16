@@ -31,7 +31,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
-    Connection.get("/user/carts/0.json", callback: cartLoaded);
+    Connection.get("/user/carts/0.json", this.context, callback: cartLoaded);
   }
 
   @override
@@ -110,7 +110,7 @@ class _CartScreenState extends State<CartScreen> {
                   child: RaisedButton(
                     onPressed: () async {
                       await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: AddressScreen()));
-                      Connection.get("/user/carts/0.json", callback: cartLoaded);
+                      Connection.get("/user/carts/0.json", context, callback: cartLoaded);
                     },
                     child: Text("Adicionar novo endereço", style: TextStyle(fontSize: 16),),
                     color: MyTheme.THEME_COLOR_1,
@@ -293,7 +293,7 @@ class _CartScreenState extends State<CartScreen> {
                         body["checkout"]["payment_type"] = "physical";
                         body["checkout"]["payment_id"] = _paymentId;
 
-                        Connection.post("/user/carts/checkout.json?", callback: checkout, body: json.encode(body));
+                        Connection.post("/user/carts/checkout.json?", context, callback: checkout, body: json.encode(body));
                       },
                       child: Text("Confirmar", style: TextStyle(fontSize: 16),),
                       color: MyTheme.THEME_COLOR_1,
@@ -469,8 +469,8 @@ class _CartScreenState extends State<CartScreen> {
                       body["cart"] = Map<String, dynamic>();
                       body["cart"]["product_id"] = product["id"];
                       body["cart"]["sub_id"] = product["sub_id"];
-                      await Connection.post("/user/carts/remove.json", body: json.encode(body));
-                      Connection.get("/user/carts/0.json", callback: cartLoaded);
+                      await Connection.post("/user/carts/remove.json", context, body: json.encode(body));
+                      Connection.get("/user/carts/0.json", context, callback: cartLoaded);
                     },
                     child: Icon(Icons.delete),
                     color: MyTheme.THEME_COLOR_1,

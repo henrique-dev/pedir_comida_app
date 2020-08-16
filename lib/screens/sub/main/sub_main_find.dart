@@ -36,7 +36,7 @@ class SubMainFind {
 
   FutureBuilder<dynamic> _screenFind(Function setCart) {
     return FutureBuilder<dynamic>(
-      future: Connection.get("/user/categories.json", callback: null),
+      future: Connection.get("/user/categories.json", this.screen.context, callback: null),
       builder: (context, snapshot) {
 
         Map<String, dynamic> jsonDecoded;
@@ -54,94 +54,80 @@ class SubMainFind {
             if (!snapshot.hasError) {
 
               Response response = snapshot.data;
+              jsonDecoded = json.decode(response.body);
+              categoriesJSON = jsonDecoded["categories"];
+              setCart(jsonDecoded["cart"]);
 
-              if (response.statusCode == 401) {
-                Navigator.pop(context);
-              } else {
-                jsonDecoded = json.decode(response.body);
-                categoriesJSON = jsonDecoded["categories"];
+              if (categoriesJSON is List<dynamic>) {
 
-                setCart(jsonDecoded["cart"]);
+                if (categoriesJSON.length > 0) {
+                  return ListView.builder(
+                      itemCount: categoriesJSON.length,
+                      itemBuilder: (context, index) {
 
-                if (categoriesJSON is List<dynamic>) {
-
-                  if (categoriesJSON.length > 0) {
-                    return ListView.builder(
-                        itemCount: categoriesJSON.length,
-                        itemBuilder: (context, index) {
-
-                          Widget img = Image.asset("assets/images/coming-soon.jpg",
-                            height: 100,
-                            fit: BoxFit.contain,);
-                          /*if (categoriesJSON[index]["photo"] != null) {
+                        Widget img = Image.asset("assets/images/coming-soon.jpg",
+                          height: 100,
+                          fit: BoxFit.contain,);
+                        /*if (categoriesJSON[index]["photo"] != null) {
                             img = Image.network(
                               HttpConnection.host + categoriesJSON[index]["photo"],
                               height: 100,
                               fit: BoxFit.cover,);
                           }*/
-                          if (categoriesJSON[index]["photo"] != null) {
-                            img = CachedNetworkImage(
-                              imageUrl: HttpConnection.host + categoriesJSON[index]["photo"],
-                              height: 100,
-                              fit: BoxFit.cover,);
-                          }
+                        if (categoriesJSON[index]["photo"] != null) {
+                          img = CachedNetworkImage(
+                            imageUrl: HttpConnection.host + categoriesJSON[index]["photo"],
+                            height: 100,
+                            fit: BoxFit.cover,);
+                        }
 
 
-                          return InkWell(
-                            onTap: () {
-                              _currentSubLevel++;
-                              _currentCategory = categoriesJSON[index]["id"];
-                              screen.setState(() {});
-                            },
-                            child: Card(
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: Stack(
-                                        fit: StackFit.passthrough,
-                                        children: [
-                                          img,
-                                          Positioned.fill(
-                                            child: Align(
-                                              alignment: Alignment.center,
-                                              child: Container(
-                                                padding: EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  color: MyTheme.THEME_COLOR_1_LIGHT,
-                                                ),
-                                                child: Text(
-                                                  categoriesJSON[index]["name"], textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                      fontSize: 18,
-                                                      color: Colors.white
-                                                  ),
+                        return InkWell(
+                          onTap: () {
+                            _currentSubLevel++;
+                            _currentCategory = categoriesJSON[index]["id"];
+                            screen.setState(() {});
+                          },
+                          child: Card(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Stack(
+                                      fit: StackFit.passthrough,
+                                      children: [
+                                        img,
+                                        Positioned.fill(
+                                          child: Align(
+                                            alignment: Alignment.center,
+                                            child: Container(
+                                              padding: EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(8),
+                                                color: MyTheme.THEME_COLOR_1_LIGHT,
+                                              ),
+                                              child: Text(
+                                                categoriesJSON[index]["name"], textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.white
                                                 ),
                                               ),
                                             ),
-                                          )
-                                        ],
-                                      ),
+                                          ),
+                                        )
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          );
-                        }
-                    );
-                  } else {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text("Nenhum produto para exibir", textAlign: TextAlign.center,)
-                      ],
-                    );
-                  }
+                          ),
+                        );
+                      }
+                  );
                 } else {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -151,6 +137,14 @@ class SubMainFind {
                     ],
                   );
                 }
+              } else {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text("Nenhum produto para exibir", textAlign: TextAlign.center,)
+                  ],
+                );
               }
             } else {
 
@@ -166,7 +160,7 @@ class SubMainFind {
 
   FutureBuilder<dynamic> _screenFindByCategory(Function setCart) {
     return FutureBuilder<dynamic>(
-      future: Connection.get("/user/products.json?category=${this._currentCategory}", callback: null),
+      future: Connection.get("/user/products.json?category=${this._currentCategory}", this.screen.context, callback: null),
       builder: (context, snapshot) {
 
         Map<String, dynamic> jsonDecoded;

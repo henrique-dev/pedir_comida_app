@@ -21,7 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: Container(
         child: FutureBuilder<dynamic>(
-          future: Connection.get("patient/patient_profiles/0.json", callback: null),
+          future: Connection.get("patient/patient_profiles/0.json", context, callback: null),
           builder: (context, snapshot) {
 
             Map<String, dynamic> jsonDecoded;
