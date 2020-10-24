@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -29,13 +30,16 @@ class Connection {
     }
     headers.addAll(accessHeaders);
     dynamic response;
+    String param = "";
     try {
       response = await HttpConnection.get(path, headers: headers).timeout(Duration(seconds: 5));
     } on TimeoutException catch(e) {
-     print(e);
      response = Response("{}", 408);
+    } on SocketException catch(e) {
+      param = "SocketException";
+      response = Response("{}", 408);
     }
-    checkStatusCode(context, response);
+    checkStatusCode(context, response, param: param);
     preCallback(response, callback);
     return response;
   }
@@ -49,13 +53,16 @@ class Connection {
     }
     headers.addAll(accessHeaders);
     dynamic response;
+    String param = "";
     try {
       response = await HttpConnection.post(path, headers: headers, body: body).timeout(Duration(seconds: 5));
     } on TimeoutException catch(e) {
-      print(e);
+      response = Response("{}", 408);
+    } on SocketException catch(e) {
+      param = "SocketException";
       response = Response("{}", 408);
     }
-    checkStatusCode(context, response);
+    checkStatusCode(context, response, param: param);
     preCallback(response, callback);
     return response;
   }
@@ -165,38 +172,69 @@ class Connection {
 
   }
 
-  static Future<bool> checkStatusCode(BuildContext context, Response response) async {
+  static Future<bool> checkStatusCode(BuildContext context, Response response, {param: ""}) async {
     print(response.statusCode);
     switch (response.statusCode) {
       case 408:
-        showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: <Widget>[
-                      Text("Desculpe, podemos estar em manutenção. Tente novamente em alguns minutos."),
-                    ],
+        if (param == "SocketException") {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: <Widget>[
+                        Text("Verifique sua conexão com a internet."),
+                      ],
+                    ),
                   ),
-                ),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('Ok'),
-                    color: MyTheme.THEME_COLOR_1,
-                    onPressed: () {
-                      Config.guestMode = false;
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (BuildContext context) => PreLoginScreen(check_token: false,)),
-                        ModalRoute.withName('/'),
-                      );
-                    },
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Ok'),
+                      color: MyTheme.THEME_COLOR_1,
+                      onPressed: () {
+                        Config.guestMode = false;
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (BuildContext context) => PreLoginScreen(check_token: false,)),
+                          ModalRoute.withName('/'),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              }
+          );
+        } else {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: <Widget>[
+                        Text("Desculpe, podemos estar em manutenção. Tente novamente em alguns minutos."),
+                      ],
+                    ),
                   ),
-                ],
-              );
-            }
-        );
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Ok'),
+                      color: MyTheme.THEME_COLOR_1,
+                      onPressed: () {
+                        Config.guestMode = false;
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (BuildContext context) => PreLoginScreen(check_token: false,)),
+                          ModalRoute.withName('/'),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              }
+          );
+        }
         break;
       case 401:
         final storage = FlutterSecureStorage();

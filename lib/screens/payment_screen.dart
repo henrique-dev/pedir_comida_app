@@ -1,9 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:pedir_comida/config/constants.dart';
 import 'package:pedir_comida/config/my_theme.dart';
 import 'package:pedir_comida/connection/connection.dart';
@@ -41,6 +39,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String expiryDate = "03/22";
   String cardHolderName = "PAULO H G BACELAR";
   String cvvCode = "542";
+  String brand;
   bool isCvvFocused = false;
   int PaymentTypeDropdownValue = 0;
 
@@ -54,7 +53,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void initState() {
     super.initState();
     if (this._paymentId != 0) {
-      Connection.get("/user/addresses/${this._paymentId}.json?", this.context, callback: cardLoaded);
+      Connection.get("/user/pagarmes/${this._paymentId}.json?", this.context, callback: cardLoaded);
     }
   }
 
@@ -71,20 +70,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
+              this._paymentId == 0 ? Padding(
                 padding: EdgeInsets.all(10),
                 child: Text("Preencha os campos abaixo", textAlign: TextAlign.center,),
-              ),
+              ) : Container(),
               Card(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     CreditCardWidget(
+                      brand: this.brand,
                       cardNumber: this.cardNumber,
                       expiryDate: this.expiryDate,
                       cardHolderName: this.cardHolderName,
                       cvvCode: this.cvvCode,
-                      showBackView: isCvvFocused, //true when you want to show cvv(back) view
+                      showBackView: isCvvFocused, //t// rue when you want to show cvv(back) view
                     ),
                     Padding(
                         padding: EdgeInsets.all(10),
@@ -107,9 +107,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                   elevation: 16,
                                   style: TextStyle(color: Colors.black),
                                   onChanged: (int newValue) {
-                                    setState(() {
-                                      PaymentTypeDropdownValue = newValue;
-                                    });
+                                    if (this._paymentId == 0) {
+                                      setState(() {
+                                        PaymentTypeDropdownValue = newValue;
+                                      });
+                                    }
                                   },
                                   items: Constants.paymentTypes.keys
                                       .map<DropdownMenuItem<int>>((int value) {
@@ -128,7 +130,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ],
                         )
                     ),
-                    CreditCardForm(
+                    this._paymentId == 0 ? CreditCardForm(
+                      onlyRead: this._paymentId != 0 ? true : false,
                       errors: errors,
                       onCreditCardModelChange: (CreditCardModel creditCardModel) {
                         setState(() {
@@ -139,8 +142,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           isCvvFocused = creditCardModel.isCvvFocused;
                         });
                       },
-                    ),
-                    Padding(
+                    ) : Container(),
+                    this._paymentId == 0 ? Padding(
                       padding: EdgeInsets.all(10),
                       child: ButtonTheme(
                         height: 45,
@@ -148,6 +151,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           onPressed: saveCard,
                           child: Text("Salvar", style: TextStyle(fontSize: 16),),
                           color: MyTheme.THEME_COLOR_1,
+                          textColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              side: BorderSide(color: Colors.black12)
+                          ),
+                        ),
+                      ),
+                    ) : Padding(
+                      padding: EdgeInsets.all(10),
+                      child: ButtonTheme(
+                        height: 45,
+                        child: RaisedButton(
+                          onPressed: removeCard,
+                          child: Text("Remover", style: TextStyle(fontSize: 16),),
+                          color: Colors.redAccent,
                           textColor: Colors.white,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
@@ -191,11 +209,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void cardLoaded(Response response) {
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonDecoded = json.decode(response.body);
-      cardNumber = jsonDecoded["card_number"];
-      expiryDate = jsonDecoded["card_expiration_date"];
-      cardHolderName = jsonDecoded["card_holder_name"];
-      _paymentId = jsonDecoded["payment_type"];
-      cvvCode = jsonDecoded["card_cvv"];
+      cardNumber = jsonDecoded["description"];
+      cardHolderName = jsonDecoded["holder_name"];
+      brand = jsonDecoded["brand"];
       setState(() {});
     } else {
       Navigator.pop(context);
@@ -208,7 +224,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       body["card_number"] = cardNumber;
       body["card_expiration_date"] = expiryDate;
       body["card_holder_name"] = cardHolderName;
-      body["payment_type"] = PaymentTypeDropdownValue;
+      body["payment_center_type"] = PaymentTypeDropdownValue;
       body["card_cvv"] = cvvCode;
 
       if (this._paymentId != 0) {
@@ -217,6 +233,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Connection.post("/user/pagarmes.json", context, callback: saveCardCallback, body: json.encode(body));
       }
     }
+  }
+
+  void removeCard() {
+    var body = {};
+    body["id"] = this._paymentId;
+    Connection.delete("/user/pagarmes/${this._paymentId}.json", context, callback: removeCardCallback, body: json.encode(body));
   }
 
   void saveCardCallback(Response response) {
@@ -235,6 +257,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
             errors[key]["v"] = true;
           }
         });
+        setState(() {});
+        break;
+    }
+  }
+
+  void removeCardCallback(Response response) {
+    switch (response.statusCode) {
+      case 200 :
+      case 201 :
+        Navigator.pop(context, "register_success");
+        break;
+      default :
         setState(() {});
         break;
     }

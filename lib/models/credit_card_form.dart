@@ -16,7 +16,8 @@ class CreditCardForm extends StatefulWidget {
     this.themeColor,
     this.textColor = Colors.black,
     this.cursorColor,
-    this.errors
+    this.errors,
+    this.onlyRead,
   }) : super(key: key);
 
   final String cardNumber;
@@ -29,6 +30,7 @@ class CreditCardForm extends StatefulWidget {
   final Color cursorColor;
 
   final Map<String, dynamic> errors;
+  final bool onlyRead;
 
   @override
   _CreditCardFormState createState() => _CreditCardFormState();
@@ -46,8 +48,8 @@ class _CreditCardFormState extends State<CreditCardForm> {
   void Function(CreditCardModel) onCreditCardModelChange;
   CreditCardModel creditCardModel;
 
-  final MaskedTextController _cardNumberController =
-  MaskedTextController(mask: '0000 0000 0000 0000');
+  TextEditingController _cardNumberController =
+  MaskedTextController(mask: '@@@@ @@@@ @@@@ @@@@');
   final TextEditingController _expiryDateController =
   MaskedTextController(mask: '00/00');
   final TextEditingController _cardHolderNameController =
@@ -133,48 +135,6 @@ class _CreditCardFormState extends State<CreditCardForm> {
       child: Form(
         child: Column(
           children: <Widget>[
-            /*Padding(
-                padding: EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    TextField(
-                      keyboardType: TextInputType.text,
-                      controller: _textEditingControllerCardNumber,
-                      onChanged: (String s) {
-                        validateSpecificField("card_number");
-                      },
-                      onTap: () {
-                        validateSpecificField(_lastElement);
-                        _lastElement = "card_number";
-                      },
-                      decoration: InputDecoration(
-                        labelText: "Número do cartão",
-                        labelStyle: TextStyle(color: MyTheme.THEME_COLOR_1_LIGHT_2),
-                        contentPadding: EdgeInsets.only(left: 10, right: 10),
-                        hoverColor: Colors.black,
-                        filled: true,
-                        fillColor: Colors.white,
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
-                        prefixStyle: TextStyle(color: Colors.black, fontSize: 16),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors.black
-                            )
-                        ),
-                        focusedBorder:  OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors.black
-                            )
-                        ),
-                      ),
-                    ),
-                    Visibility(
-                      visible: errors["card_number"]["v"],
-                      child: Text(errors["card_number"]["d"], style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                )
-            ),*/
             Container(
               margin: const EdgeInsets.all(10),
               child: TextFormField(

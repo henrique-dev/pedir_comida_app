@@ -57,7 +57,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                         subtitle: Text(element["description"]),
                         trailing: Image.asset("assets/images/${element["brand"]}.png"),
                         onTap: () async {
-
+                          await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: PaymentScreen( payment: element["id"])));
+                          setState(() {});
                         },
                       )
                     );

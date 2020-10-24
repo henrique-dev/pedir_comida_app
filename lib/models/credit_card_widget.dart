@@ -15,6 +15,7 @@ class CreditCardWidget extends StatefulWidget {
     this.width,
     this.textStyle,
     this.cardBgColor = const Color(0xff1b447b),
+    this.brand,
   })  : assert(cardNumber != null),
         assert(showBackView != null),
         super(key: key);
@@ -29,6 +30,7 @@ class CreditCardWidget extends StatefulWidget {
   final Duration animationDuration;
   final double height;
   final double width;
+  final String brand;
 
   @override
   _CreditCardWidgetState createState() => _CreditCardWidgetState();
@@ -393,14 +395,36 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
     return cardType;
   }
 
+  CardType convertStringToCardType(String brand) {
+    //Default card type is other
+    CardType cardType = CardType.otherBrand;
+    switch(brand) {
+      case "visa" :
+        cardType = CardType.visa;
+        break;
+      case "mastercard" :
+        cardType = CardType.mastercard;
+        break;
+      case "discover" :
+        cardType = CardType.discover;
+        break;
+      case "amex" :
+        cardType = CardType.americanExpress;
+        break;
+    }
+
+    return cardType;
+  }
+
   // This method returns the icon for the visa card type if found
   // else will return the empty container
   Widget getCardTypeIcon(String cardNumber) {
     Widget icon;
-    switch (detectCCType(cardNumber)) {
+    print(widget.brand == null);
+    switch (widget.brand == null ? detectCCType(cardNumber) : convertStringToCardType(widget.brand)) {
       case CardType.visa:
         icon = Image.asset(
-          'icons/visa.png',
+          'assets/images/visa.png',
           height: 48,
           width: 48,
           //package: 'flutter_credit_card',
@@ -410,7 +434,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
 
       case CardType.americanExpress:
         icon = Image.asset(
-          'icons/amex.png',
+          'assets/images/amex.png',
           height: 48,
           width: 48,
           //package: 'flutter_credit_card',
@@ -420,7 +444,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
 
       case CardType.mastercard:
         icon = Image.asset(
-          'icons/mastercard.png',
+          'assets/images/mastercard.png',
           height: 48,
           width: 48,
           //package: 'flutter_credit_card',
@@ -430,7 +454,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
 
       case CardType.discover:
         icon = Image.asset(
-          'icons/discover.png',
+          'assets/images/discover.png',
           height: 48,
           width: 48,
           //package: 'flutter_credit_card',

@@ -53,15 +53,13 @@ class _CartScreenState extends State<CartScreen> {
         List<Widget> paymentsWidget = List();
         payments.forEach((element) {
 
-          print(element);
-
           paymentsWidget.add(
               Transform.scale(
                 scale: 0.75,
                 alignment: Alignment.centerLeft,
                 child: RadioListTile(
                   dense: true,
-                  title: Text(element["description"], style: TextStyle(fontSize: 16),),
+                  title: Text(element["payment_type"] == "virtual" ? element["sub_description2"] : element["description"], style: TextStyle(fontSize: 16),),
                   onChanged: (value){
                     setState(() {
                       _paymentId = element["id"];
@@ -275,7 +273,8 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     child: ExpansionTile(
                       title: Text("${paymentsById[_paymentId]["name"]}", style: TextStyle(color: MyTheme.THEME_COLOR_1),),
-                      subtitle: Text("${paymentsById[_paymentId]["description"]}", style: TextStyle(color: MyTheme.THEME_COLOR_1),),
+                      subtitle: Text("${paymentsById[_paymentId]["payment_type"] == "virtual" ?
+                      paymentsById[_paymentId]["sub_description"] : paymentsById[_paymentId]["description"]}", style: TextStyle(color: MyTheme.THEME_COLOR_1),),
                       childrenPadding: EdgeInsets.only(bottom: 0),
                       children: paymentsWidget,
                     ),
@@ -312,12 +311,12 @@ class _CartScreenState extends State<CartScreen> {
 
       } else {
         return Center(
-          child: Text("!!"),
+          child: Text(""),
         );
       }
     } else {
       return Center(
-        child: Text("!!"),
+        child: Text(""),
       );
     }
   }
